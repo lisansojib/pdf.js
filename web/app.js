@@ -1815,6 +1815,7 @@ function webViewerInitialized() {
     fileInput.id = appConfig.openFileInputName;
     fileInput.className = "fileInput";
     fileInput.setAttribute("type", "file");
+    fileInput.setAttribute("multiple", "multiple");
     fileInput.oncontextmenu = noContextMenuHandler;
     document.body.appendChild(fileInput);
 
@@ -2159,7 +2160,10 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     }
     const file = evt.fileInput.files[0];
 
-    if (URL.createObjectURL && !AppOptions.get("disableCreateObjectURL")) {
+    if(file && file.type.includes("image")) {
+      processImageFiles(file);
+    }
+    else if (URL.createObjectURL && !AppOptions.get("disableCreateObjectURL")) {
       let url = URL.createObjectURL(file);
       if (file.name) {
         url = { url, originalUrl: file.name };
@@ -2731,6 +2735,29 @@ function webViewerKeyDown(evt) {
   if (handled) {
     evt.preventDefault();
   }
+}
+
+/**
+ * Process if uploaded file is image
+ * @param {Image} - Uploaded Image 
+ */
+function processImageFiles(file) {
+  const uri = "/imageviewer-api/file-processor/process-image";
+  const xhr = new XMLHttpRequest();
+  const fd = new FormData();
+  
+  xhr.open("POST", uri, true);
+  xhr.responseType = "json";
+  xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        let baseUrl = window.location.origin + '/' + window.location.pathname.split ('/') [1] ;
+        let url = { url: baseUrl + xhr.response.url, originalUrl: xhr.response.fileName };
+        PDFViewerApplication.open(url);
+      }
+  };
+  fd.append('UploadImage', file);
+  // Initiate a multipart/form-data upload
+  xhr.send(fd);
 }
 
 /**
