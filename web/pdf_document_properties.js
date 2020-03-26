@@ -72,25 +72,21 @@ class PDFDocumentProperties {
     this.l10n = l10n;
 
     this._reset();
+    // Bind the event listener for the Close button.
+    closeButton.addEventListener("click", this.close.bind(this));
 
-    if (closeButton) {
-      // Bind the event listener for the Close button.
-      closeButton.addEventListener("click", this.close.bind(this));
-    }
     this.overlayManager.register(
       this.overlayName,
       this.container,
       this.close.bind(this)
     );
 
-    if (eventBus) {
-      eventBus.on("pagechanging", evt => {
-        this._currentPageNumber = evt.pageNumber;
-      });
-      eventBus.on("rotationchanging", evt => {
-        this._pagesRotation = evt.pagesRotation;
-      });
-    }
+    eventBus._on("pagechanging", evt => {
+      this._currentPageNumber = evt.pageNumber;
+    });
+    eventBus._on("rotationchanging", evt => {
+      this._pagesRotation = evt.pagesRotation;
+    });
 
     this._isNonMetricLocale = true; // The default viewer locale is 'en-us'.
     l10n.getLanguage().then(locale => {
@@ -338,12 +334,12 @@ class PDFDocumentProperties {
     };
 
     let pageName = null;
-    let name =
+    let rawName =
       getPageName(sizeInches, isPortrait, US_PAGE_NAMES) ||
       getPageName(sizeMillimeters, isPortrait, METRIC_PAGE_NAMES);
 
     if (
-      !name &&
+      !rawName &&
       !(
         Number.isInteger(sizeMillimeters.width) &&
         Number.isInteger(sizeMillimeters.height)
@@ -366,8 +362,8 @@ class PDFDocumentProperties {
         Math.abs(exactMillimeters.width - intMillimeters.width) < 0.1 &&
         Math.abs(exactMillimeters.height - intMillimeters.height) < 0.1
       ) {
-        name = getPageName(intMillimeters, isPortrait, METRIC_PAGE_NAMES);
-        if (name) {
+        rawName = getPageName(intMillimeters, isPortrait, METRIC_PAGE_NAMES);
+        if (rawName) {
           // Update *both* sizes, computed above, to ensure that the displayed
           // dimensions always correspond to the detected page name.
           sizeInches = {
@@ -378,11 +374,11 @@ class PDFDocumentProperties {
         }
       }
     }
-    if (name) {
+    if (rawName) {
       pageName = this.l10n.get(
-        "document_properties_page_size_name_" + name.toLowerCase(),
+        "document_properties_page_size_name_" + rawName.toLowerCase(),
         null,
-        name
+        rawName
       );
     }
 

@@ -73,6 +73,7 @@ var JpegImage = (function JpegImageClosure() {
   var dctSqrt2 = 5793; // sqrt(2)
   var dctSqrt1d2 = 2896; // sqrt(2) / 2
 
+  // eslint-disable-next-line no-shadow
   function JpegImage({ decodeTransform = null, colorTransform = -1 } = {}) {
     this._decodeTransform = decodeTransform;
     this._colorTransform = colorTransform;
@@ -148,7 +149,7 @@ var JpegImage = (function JpegImageClosure() {
       if (bitsData === 0xff) {
         var nextByte = data[offset++];
         if (nextByte) {
-          if (nextByte === 0xdc && parseDNLMarker) {
+          if (nextByte === /* DNL = */ 0xdc && parseDNLMarker) {
             offset += 2; // Skip marker length.
 
             const scanLines = readUint16(data, offset);
@@ -159,7 +160,22 @@ var JpegImage = (function JpegImageClosure() {
                 scanLines
               );
             }
-          } else if (nextByte === 0xd9) {
+          } else if (nextByte === /* EOI = */ 0xd9) {
+            if (parseDNLMarker) {
+              // NOTE: only 8-bit JPEG images are supported in this decoder.
+              const maybeScanLines = blockRow * 8;
+              // Heuristic to attempt to handle corrupt JPEG images with too
+              // large `scanLines` parameter, by falling back to the currently
+              // parsed number of scanLines when it's at least one order of
+              // magnitude smaller than expected (fixes issue10880.pdf).
+              if (maybeScanLines > 0 && maybeScanLines < frame.scanLines / 10) {
+                throw new DNLMarkerError(
+                  "Found EOI marker (0xFFD9) while parsing scan data, " +
+                    "possibly caused by incorrect `scanLines` parameter",
+                  maybeScanLines
+                );
+              }
+            }
             throw new EOIMarkerError(
               "Found EOI marker (0xFFD9) while parsing scan data"
             );
@@ -208,10 +224,10 @@ var JpegImage = (function JpegImageClosure() {
       return n + (-1 << length) + 1;
     }
 
-    function decodeBaseline(component, offset) {
+    function decodeBaseline(component, blockOffset) {
       var t = decodeHuffman(component.huffmanTableDC);
       var diff = t === 0 ? 0 : receiveAndExtend(t);
-      component.blockData[offset] = component.pred += diff;
+      component.blockData[blockOffset] = component.pred += diff;
       var k = 1;
       while (k < 64) {
         var rs = decodeHuffman(component.huffmanTableAC);
@@ -226,23 +242,23 @@ var JpegImage = (function JpegImageClosure() {
         }
         k += r;
         var z = dctZigZag[k];
-        component.blockData[offset + z] = receiveAndExtend(s);
+        component.blockData[blockOffset + z] = receiveAndExtend(s);
         k++;
       }
     }
 
-    function decodeDCFirst(component, offset) {
+    function decodeDCFirst(component, blockOffset) {
       var t = decodeHuffman(component.huffmanTableDC);
       var diff = t === 0 ? 0 : receiveAndExtend(t) << successive;
-      component.blockData[offset] = component.pred += diff;
+      component.blockData[blockOffset] = component.pred += diff;
     }
 
-    function decodeDCSuccessive(component, offset) {
-      component.blockData[offset] |= readBit() << successive;
+    function decodeDCSuccessive(component, blockOffset) {
+      component.blockData[blockOffset] |= readBit() << successive;
     }
 
     var eobrun = 0;
-    function decodeACFirst(component, offset) {
+    function decodeACFirst(component, blockOffset) {
       if (eobrun > 0) {
         eobrun--;
         return;
@@ -263,7 +279,7 @@ var JpegImage = (function JpegImageClosure() {
         }
         k += r;
         var z = dctZigZag[k];
-        component.blockData[offset + z] =
+        component.blockData[blockOffset + z] =
           receiveAndExtend(s) * (1 << successive);
         k++;
       }
@@ -271,14 +287,14 @@ var JpegImage = (function JpegImageClosure() {
 
     var successiveACState = 0,
       successiveACNextValue;
-    function decodeACSuccessive(component, offset) {
+    function decodeACSuccessive(component, blockOffset) {
       var k = spectralStart;
       var e = spectralEnd;
       var r = 0;
       var s;
       var rs;
       while (k <= e) {
-        const offsetZ = offset + dctZigZag[k];
+        const offsetZ = blockOffset + dctZigZag[k];
         const sign = component.blockData[offsetZ] < 0 ? -1 : 1;
         switch (successiveACState) {
           case 0: // initial state
@@ -337,20 +353,21 @@ var JpegImage = (function JpegImageClosure() {
       }
     }
 
+    let blockRow = 0;
     function decodeMcu(component, decode, mcu, row, col) {
       var mcuRow = (mcu / mcusPerLine) | 0;
       var mcuCol = mcu % mcusPerLine;
-      var blockRow = mcuRow * component.v + row;
+      blockRow = mcuRow * component.v + row;
       var blockCol = mcuCol * component.h + col;
-      var offset = getBlockBufferOffset(component, blockRow, blockCol);
-      decode(component, offset);
+      const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
+      decode(component, blockOffset);
     }
 
     function decodeBlock(component, decode, mcu) {
-      var blockRow = (mcu / component.blocksPerLine) | 0;
+      blockRow = (mcu / component.blocksPerLine) | 0;
       var blockCol = mcu % component.blocksPerLine;
-      var offset = getBlockBufferOffset(component, blockRow, blockCol);
-      decode(component, offset);
+      const blockOffset = getBlockBufferOffset(component, blockRow, blockCol);
+      decode(component, blockOffset);
     }
 
     var componentsLength = components.length;

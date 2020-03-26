@@ -18,7 +18,7 @@ import {
   IDENTITY_MATRIX,
   ImageKind,
   info,
-  isLittleEndian,
+  IsLittleEndianCached,
   isNum,
   OPS,
   shadow,
@@ -45,12 +45,6 @@ var COMPILE_TYPE3_GLYPHS = true;
 var MAX_SIZE_TO_COMPILE = 1000;
 
 var FULL_CHUNK_HEIGHT = 16;
-
-var IsLittleEndianCached = {
-  get value() {
-    return shadow(IsLittleEndianCached, "value", isLittleEndian());
-  },
-};
 
 function addContextCurrentTransform(ctx) {
   // If the context doesn't expose a `mozCurrentTransform`, add a JS based one.
@@ -174,6 +168,7 @@ function addContextCurrentTransform(ctx) {
 }
 
 var CachedCanvases = (function CachedCanvasesClosure() {
+  // eslint-disable-next-line no-shadow
   function CachedCanvases(canvasFactory) {
     this.canvasFactory = canvasFactory;
     this.cache = Object.create(null);
@@ -373,11 +368,11 @@ function compileType3Glyph(imgData) {
     c.scale(1 / width, -1 / height);
     c.translate(0, -height);
     c.beginPath();
-    for (var i = 0, ii = outlines.length; i < ii; i++) {
-      var o = outlines[i];
+    for (let k = 0, kk = outlines.length; k < kk; k++) {
+      var o = outlines[k];
       c.moveTo(o[0], o[1]);
-      for (var j = 2, jj = o.length; j < jj; j += 2) {
-        c.lineTo(o[j], o[j + 1]);
+      for (let l = 2, ll = o.length; l < ll; l += 2) {
+        c.lineTo(o[l], o[l + 1]);
       }
     }
     c.fill();
@@ -389,6 +384,7 @@ function compileType3Glyph(imgData) {
 }
 
 var CanvasExtraState = (function CanvasExtraStateClosure() {
+  // eslint-disable-next-line no-shadow
   function CanvasExtraState() {
     // Are soft masks and alpha values shapes or opacities?
     this.alphaIsShape = false;
@@ -441,6 +437,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
   // Defines the number of steps before checking the execution time
   var EXECUTION_STEPS = 10;
 
+  // eslint-disable-next-line no-shadow
   function CanvasGraphics(
     canvasCtx,
     commonObjs,
@@ -1719,7 +1716,12 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
           }
         }
 
-        var charWidth = width * widthAdvanceScale + spacing * fontDirection;
+        var charWidth;
+        if (vertical) {
+          charWidth = width * widthAdvanceScale - spacing * fontDirection;
+        } else {
+          charWidth = width * widthAdvanceScale + spacing * fontDirection;
+        }
         x += charWidth;
 
         if (restoreNeeded) {
@@ -1727,7 +1729,7 @@ var CanvasGraphics = (function CanvasGraphicsClosure() {
         }
       }
       if (vertical) {
-        current.y -= x * textHScale;
+        current.y -= x;
       } else {
         current.x += x * textHScale;
       }

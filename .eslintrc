@@ -119,8 +119,8 @@
     "no-catch-shadow": "error",
     "no-delete-var": "error",
     "no-label-var": "error",
+    "no-shadow": "error",
     "no-shadow-restricted-names": "error",
-    "no-shadow": "off",
     "no-undef-init": "error",
     "no-undef": ["error", { "typeof": true, }],
     "no-unused-vars": ["error", {
@@ -143,7 +143,22 @@
     "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 0, "maxBOF": 1, }],
     "no-nested-ternary": "error",
     "no-new-object": "error",
+    "no-restricted-syntax": ["error",
+      {
+        "selector": "NewExpression[callee.name='Cmd']",
+        "message": "Use `Cmd.get()` rather than `new Cmd()`.",
+      },
+      {
+        "selector": "NewExpression[callee.name='Name']",
+        "message": "Use `Name.get()` rather than `new Name()`.",
+      },
+      {
+        "selector": "NewExpression[callee.name='Ref']",
+        "message": "Use `Ref.get()` rather than `new Ref()`.",
+      },
+    ],
     "no-unneeded-ternary": "error",
+    "prefer-exponentiation-operator": "error",
     "spaced-comment": ["error", "always", {
       "block": {
         "balanced": true,

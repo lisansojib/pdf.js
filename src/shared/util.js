@@ -405,6 +405,7 @@ function shadow(obj, prop, value) {
 }
 
 const BaseException = (function BaseExceptionClosure() {
+  // eslint-disable-next-line no-shadow
   function BaseException(message) {
     if (this.constructor === BaseException) {
       unreachable("Cannot initialize BaseException.");
@@ -547,14 +548,18 @@ function string32(value) {
   );
 }
 
-// Lazy test the endianness of the platform
-// NOTE: This will be 'true' for simulated TypedArrays
+// Checks the endianness of the platform.
 function isLittleEndian() {
   const buffer8 = new Uint8Array(4);
   buffer8[0] = 1;
   const view32 = new Uint32Array(buffer8.buffer, 0, 1);
   return view32[0] === 1;
 }
+const IsLittleEndianCached = {
+  get value() {
+    return shadow(this, "value", isLittleEndian());
+  },
+};
 
 // Checks if it's possible to eval JS expressions.
 function isEvalSupported() {
@@ -565,6 +570,11 @@ function isEvalSupported() {
     return false;
   }
 }
+const IsEvalSupportedCached = {
+  get value() {
+    return shadow(this, "value", isEvalSupported());
+  },
+};
 
 const rgbBuf = ["rgb(", 0, ",", 0, ",", 0, ")"];
 
@@ -850,6 +860,7 @@ const createObjectURL = (function createObjectURLClosure() {
   const digits =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
+  // eslint-disable-next-line no-shadow
   return function createObjectURL(data, contentType, forceDataSchema = false) {
     if (!forceDataSchema && URL.createObjectURL) {
       const blob = new Blob([data], { type: contentType });
@@ -918,8 +929,8 @@ export {
   isString,
   isSameOrigin,
   createValidAbsoluteUrl,
-  isLittleEndian,
-  isEvalSupported,
+  IsLittleEndianCached,
+  IsEvalSupportedCached,
   removeNullCharacters,
   setVerbosityLevel,
   shadow,
