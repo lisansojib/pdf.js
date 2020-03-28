@@ -1797,10 +1797,11 @@ function loadAndEnablePDFBug(enabledTabs) {
 
 function webViewerInitialized() {
   const appConfig = PDFViewerApplication.appConfig;
+  const queryString = document.location.search.substring(1);
+  const params = parseQueryString(queryString);
+
   let file;
-  if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-    const queryString = document.location.search.substring(1);
-    const params = parseQueryString(queryString);
+  if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {    
     file = "file" in params ? params.file : AppOptions.get("defaultUrl");
     validateFileURL(file);
   } else if (PDFJSDev.test("MOZCENTRAL")) {
@@ -1881,18 +1882,72 @@ function webViewerInitialized() {
       });
   }
 
-  if (!PDFViewerApplication.supportsPrinting) {
+  let showPrintButton = "showprintbutton" in params ? convertToBoolean(params.showprintbutton) : PDFViewerApplication.supportsPrinting;
+  if (!PDFViewerApplication.supportsPrinting || !showPrintButton) {
     appConfig.toolbar.print.classList.add("hidden");
     appConfig.secondaryToolbar.printButton.classList.add("hidden");
   }
 
-  if (!PDFViewerApplication.supportsFullscreen) {
+  let shwofullscreenbutton = "shwofullscreenbutton" in params ? convertToBoolean(params.shwofullscreenbutton) : PDFViewerApplication.supportsFullscreen;
+  if (!PDFViewerApplication.supportsFullscreen || !shwofullscreenbutton) {
     appConfig.toolbar.presentationModeButton.classList.add("hidden");
     appConfig.secondaryToolbar.presentationModeButton.classList.add("hidden");
   }
 
   if (PDFViewerApplication.supportsIntegratedFind) {
     appConfig.toolbar.viewFind.classList.add("hidden");
+  }
+
+  let viewScale = "viewscale" in params ? params.viewscale : "auto";
+  appConfig.toolbar.scaleSelect.value = viewScale;  
+
+  let showViewScale = "showviewscale" in params ? convertToBoolean(params.showviewscale) : true;
+  if(!showViewScale){
+    appConfig.toolbar.scaleSelectContainer.classList.add("hidden");
+  }
+
+  let showOpenButton = "showopenbutton" in params ? convertToBoolean(params.showopenbutton) : true;
+  if(!showOpenButton){
+    appConfig.toolbar.openFile.classList.add("hidden");
+    appConfig.secondaryToolbar.openFileButton.classList.add("hidden");
+  }
+
+  let showDownloadButton = "showdownloadbutton" in params ? convertToBoolean(params.showdownloadbutton) : true;
+  if(!showDownloadButton){
+    appConfig.toolbar.download.classList.add("hidden");
+    appConfig.secondaryToolbar.downloadButton.classList.add("hidden");
+  }
+
+  let showRotateButtons = "showrotatebuttons" in params ? convertToBoolean(params.showrotatebuttons) : true;
+  if(!showRotateButtons){
+    appConfig.secondaryToolbar.pageRotateCwButton.classList.add("hidden");
+    appConfig.secondaryToolbar.pageRotateCcwButton.classList.add("hidden");
+  }
+
+  let showZoomInOutButtons = "showzoominoutbuttons" in params ? convertToBoolean(params.showzoominoutbuttons) : true;
+  if(!showZoomInOutButtons){
+    appConfig.toolbar.zoomIn.classList.add("hidden");
+    appConfig.toolbar.zoomOut.classList.add("hidden");
+  }
+
+  let showFindButton = "showfindbutton" in params ? convertToBoolean(params.showfindbutton) : true;
+  if(!showFindButton){
+    appConfig.toolbar.viewFind.classList.add("hidden");
+  }
+
+  let showThumbnailList = "showthumbnaillist" in params ? convertToBoolean(params.showthumbnaillist) : true;
+  if(!showThumbnailList){
+    appConfig.sidebar.toggleButton.classList.add("hidden");
+  }
+
+  let showDocumentPropertiesButton = "showdocumentpropertiesbutton" in params ? convertToBoolean(params.showdocumentpropertiesbutton) : true;
+  if(!showDocumentPropertiesButton){
+    appConfig.secondaryToolbar.documentPropertiesButton.classList.add("hidden");
+  }
+
+  let showOutlineButton = "showoutlinebutton" in params ? convertToBoolean(params.showoutlinebutton) : true;
+  if(!showOutlineButton){
+    appConfig.secondaryToolbar.outlineButton.classList.add("hidden");
   }
 
   appConfig.mainContainer.addEventListener(
@@ -2756,6 +2811,23 @@ function processImageFiles(file) {
   fd.append('UploadImage', file);
   // Initiate a multipart/form-data upload
   xhr.send(fd);
+}
+
+/**
+ * Converts a string to boolean
+ * @param {string} str - input string
+ */
+function convertToBoolean(str) {
+  if (!str)
+      return false;
+
+  switch (str.toLowerCase()) {
+      case "true":
+      case "yes":
+      case "1":
+          return true;
+      default: return false;
+  }
 }
 
 /**
