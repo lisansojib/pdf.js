@@ -14,7 +14,7 @@
  */
 
 const CSS_UNITS = 96.0 / 72.0;
-const DEFAULT_SCALE_VALUE = "auto";
+let DEFAULT_SCALE_VALUE = "auto";
 const DEFAULT_SCALE = 1.0;
 const MIN_SCALE = 0.1;
 const MAX_SCALE = 10.0;
@@ -991,6 +991,10 @@ function moveToEndOfArray(arr, condition) {
   }
 }
 
+function setDefaultScaleValue(value){
+  DEFAULT_SCALE_VALUE = value;
+}
+
 export {
   AutoPrintRegExp,
   CSS_UNITS,
@@ -1033,4 +1037,5 @@ export {
   WaitOnType,
   waitOnEventOrTimeout,
   moveToEndOfArray,
+  setDefaultScaleValue,
 };
