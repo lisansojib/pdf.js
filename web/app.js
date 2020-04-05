@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 /* Copyright 2012 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,6 +33,7 @@ import {
   ProgressBar,
   RendererType,
   ScrollMode,
+  setDefaultScaleValue,
   SpreadMode,
   TextLayerMode,
 } from "./ui_utils.js";
@@ -1734,12 +1736,18 @@ const PDFViewerApplication = {
   },
 };
 
+/**
+ * Base Url of the caller app where viewer.html is called
+ */
+let callerUrl;
+
 let validateFileURL;
 if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
   const HOSTED_VIEWER_ORIGINS = [
     "null",
     "http://mozilla.github.io",
     "https://mozilla.github.io",
+    "https://lisansojib.github.io",
   ];
   validateFileURL = function(file) {
     if (file === undefined) {
@@ -1800,8 +1808,10 @@ function webViewerInitialized() {
   const queryString = document.location.search.substring(1);
   const params = parseQueryString(queryString);
 
+  callerUrl = "baseurl" in params ? params.baseurl : "";
+
   let file;
-  if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {    
+  if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     file = "file" in params ? params.file : AppOptions.get("defaultUrl");
     validateFileURL(file);
   } else if (PDFJSDev.test("MOZCENTRAL")) {
@@ -1816,6 +1826,7 @@ function webViewerInitialized() {
     fileInput.className = "fileInput";
     fileInput.setAttribute("type", "file");
     fileInput.setAttribute("multiple", "multiple");
+    fileInput.setAttribute("accept", "image/*, application/pdf");
     fileInput.oncontextmenu = noContextMenuHandler;
     document.body.appendChild(fileInput);
 
@@ -1882,13 +1893,19 @@ function webViewerInitialized() {
       });
   }
 
-  let showPrintButton = "showprintbutton" in params ? convertToBoolean(params.showprintbutton) : PDFViewerApplication.supportsPrinting;
+  const showPrintButton =
+    "showprintbutton" in params
+      ? convertToBoolean(params.showprintbutton)
+      : PDFViewerApplication.supportsPrinting;
   if (!PDFViewerApplication.supportsPrinting || !showPrintButton) {
     appConfig.toolbar.print.classList.add("hidden");
     appConfig.secondaryToolbar.printButton.classList.add("hidden");
   }
 
-  let shwofullscreenbutton = "shwofullscreenbutton" in params ? convertToBoolean(params.shwofullscreenbutton) : PDFViewerApplication.supportsFullscreen;
+  const shwofullscreenbutton =
+    "shwofullscreenbutton" in params
+      ? convertToBoolean(params.shwofullscreenbutton)
+      : PDFViewerApplication.supportsFullscreen;
   if (!PDFViewerApplication.supportsFullscreen || !shwofullscreenbutton) {
     appConfig.toolbar.presentationModeButton.classList.add("hidden");
     appConfig.secondaryToolbar.presentationModeButton.classList.add("hidden");
@@ -1898,55 +1915,80 @@ function webViewerInitialized() {
     appConfig.toolbar.viewFind.classList.add("hidden");
   }
 
-  let viewScale = "viewscale" in params ? params.viewscale : "auto";
-  appConfig.toolbar.scaleSelect.value = viewScale;  
+  debugger;
+  const defaultScaleSelect =
+    "scaleselect" in params ? params.scaleselect : "auto";
+  setDefaultScaleValue(defaultScaleSelect);
 
-  let showViewScale = "showviewscale" in params ? convertToBoolean(params.showviewscale) : true;
-  if(!showViewScale){
+  const showScaleSelect =
+    "showscaleselect" in params
+      ? convertToBoolean(params.showscaleselect)
+      : true;
+  if (!showScaleSelect) {
     appConfig.toolbar.scaleSelectContainer.classList.add("hidden");
   }
 
-  let showOpenButton = "showopenbutton" in params ? convertToBoolean(params.showopenbutton) : true;
-  if(!showOpenButton){
+  const showOpenButton =
+    "showopenbutton" in params ? convertToBoolean(params.showopenbutton) : true;
+  if (!showOpenButton) {
     appConfig.toolbar.openFile.classList.add("hidden");
     appConfig.secondaryToolbar.openFileButton.classList.add("hidden");
   }
 
-  let showDownloadButton = "showdownloadbutton" in params ? convertToBoolean(params.showdownloadbutton) : true;
-  if(!showDownloadButton){
+  const showDownloadButton =
+    "showdownloadbutton" in params
+      ? convertToBoolean(params.showdownloadbutton)
+      : true;
+  if (!showDownloadButton) {
     appConfig.toolbar.download.classList.add("hidden");
     appConfig.secondaryToolbar.downloadButton.classList.add("hidden");
   }
 
-  let showRotateButtons = "showrotatebuttons" in params ? convertToBoolean(params.showrotatebuttons) : true;
-  if(!showRotateButtons){
+  const showRotateButtons =
+    "showrotatebuttons" in params
+      ? convertToBoolean(params.showrotatebuttons)
+      : true;
+  if (!showRotateButtons) {
     appConfig.secondaryToolbar.pageRotateCwButton.classList.add("hidden");
     appConfig.secondaryToolbar.pageRotateCcwButton.classList.add("hidden");
   }
 
-  let showZoomInOutButtons = "showzoominoutbuttons" in params ? convertToBoolean(params.showzoominoutbuttons) : true;
-  if(!showZoomInOutButtons){
+  const showZoomInOutButtons =
+    "showzoominzoomoutbuttons" in params
+      ? convertToBoolean(params.showzoominoutbuttons)
+      : true;
+  if (!showZoomInOutButtons) {
     appConfig.toolbar.zoomIn.classList.add("hidden");
     appConfig.toolbar.zoomOut.classList.add("hidden");
   }
 
-  let showFindButton = "showfindbutton" in params ? convertToBoolean(params.showfindbutton) : true;
-  if(!showFindButton){
+  const showFindButton =
+    "showfindbutton" in params ? convertToBoolean(params.showfindbutton) : true;
+  if (!showFindButton) {
     appConfig.toolbar.viewFind.classList.add("hidden");
   }
 
-  let showThumbnailList = "showthumbnaillist" in params ? convertToBoolean(params.showthumbnaillist) : true;
-  if(!showThumbnailList){
+  const showThumbnailList =
+    "showthumbnaillist" in params
+      ? convertToBoolean(params.showthumbnaillist)
+      : true;
+  if (!showThumbnailList) {
     appConfig.sidebar.toggleButton.classList.add("hidden");
   }
 
-  let showDocumentPropertiesButton = "showdocumentpropertiesbutton" in params ? convertToBoolean(params.showdocumentpropertiesbutton) : true;
-  if(!showDocumentPropertiesButton){
+  const showDocumentPropertiesButton =
+    "showdocumentpropertiesbutton" in params
+      ? convertToBoolean(params.showdocumentpropertiesbutton)
+      : true;
+  if (!showDocumentPropertiesButton) {
     appConfig.secondaryToolbar.documentPropertiesButton.classList.add("hidden");
   }
 
-  let showOutlineButton = "showoutlinebutton" in params ? convertToBoolean(params.showoutlinebutton) : true;
-  if(!showOutlineButton){
+  const showOutlineButton =
+    "showoutlinebutton" in params
+      ? convertToBoolean(params.showoutlinebutton)
+      : true;
+  if (!showOutlineButton) {
     appConfig.secondaryToolbar.outlineButton.classList.add("hidden");
   }
 
@@ -2214,10 +2256,12 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     }
     const file = evt.fileInput.files[0];
 
-    if(file && file.type.includes("image")) {
+    if (file && file.type.includes("image")) {
       processImageFiles(file);
-    }
-    else if (URL.createObjectURL && !AppOptions.get("disableCreateObjectURL")) {
+    } else if (
+      URL.createObjectURL &&
+      !AppOptions.get("disableCreateObjectURL")
+    ) {
       let url = URL.createObjectURL(file);
       if (file.name) {
         url = { url, originalUrl: file.name };
@@ -2792,25 +2836,57 @@ function webViewerKeyDown(evt) {
 
 /**
  * Process if uploaded file is image
- * @param {Image} - Uploaded Image 
+ * @param {Image} - Uploaded Image
  */
 function processImageFiles(file) {
-  const uri = "/imageviewer-api/file-processor/process-image";
-  const xhr = new XMLHttpRequest();
-  const fd = new FormData();
-  
-  xhr.open("POST", uri, true);
-  xhr.responseType = "json";
+  const url = callerUrl + "/imageviewer-api/file-processor/process-image";
+
+  const xhr = createCORSRequest("POST", url);
+  if (!xhr) {
+    throw new Error("CORS not supported");
+  }
+  xhr.withCredentials = true;
+
   xhr.onreadystatechange = function() {
-      if (xhr.readyState == 4 && xhr.status == 200) {
-        let baseUrl = window.location.origin + '/' + window.location.pathname.split ('/') [1] ;
-        let url = { url: baseUrl + xhr.response.url, originalUrl: xhr.response.fileName };
-        PDFViewerApplication.open(url);
-      }
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      const fileUrl = {
+        url: xhr.response.url,
+        originalUrl: xhr.response.fileName,
+      };
+      PDFViewerApplication.open(fileUrl);
+    }
   };
-  fd.append('UploadImage', file);
+
+  const formData = new FormData();
+  formData.append("UploadImage", file);
   // Initiate a multipart/form-data upload
-  xhr.send(fd);
+  xhr.send(formData);
+}
+
+/**
+ * Create CORS request
+ * @param {*} method - HTTP method
+ * @param {*} url - request url
+ */
+function createCORSRequest(method, url) {
+  let xhr = new XMLHttpRequest();
+  xhr.responseType = "json";
+
+  if ("withCredentials" in xhr) {
+    // Check if the XMLHttpRequest object has a "withCredentials" property.
+    // "withCredentials" only exists on XMLHTTPRequest2 objects.
+    xhr.open(method, url, true);
+  } else if (typeof XDomainRequest !== "undefined") {
+    // Otherwise, check if XDomainRequest.
+    // XDomainRequest only exists in IE, and is IE's way of making CORS requests
+    xhr = new XDomainRequest();
+    xhr.open(method, url);
+  } else {
+    // Otherwise, CORS is not supported by the browser.
+    xhr = null;
+  }
+
+  return xhr;
 }
 
 /**
@@ -2818,15 +2894,17 @@ function processImageFiles(file) {
  * @param {string} str - input string
  */
 function convertToBoolean(str) {
-  if (!str)
-      return false;
+  if (!str) {
+    return false;
+  }
 
   switch (str.toLowerCase()) {
-      case "true":
-      case "yes":
-      case "1":
-          return true;
-      default: return false;
+    case "true":
+    case "yes":
+    case "1":
+      return true;
+    default:
+      return false;
   }
 }
 
