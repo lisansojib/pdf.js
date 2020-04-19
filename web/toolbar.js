@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* Copyright 2016 Mozilla Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +49,7 @@ const SCALE_SELECT_WIDTH = 162; // px
  * @property {HTMLButtonElement} presentationModeButton - Button to switch to
  *   presentation mode.
  * @property {HTMLButtonElement} download - Button to download the document.
+ * @property {HTMLButtonElement} downloadOriginal - Button to download the original
  * @property {HTMLAElement} viewBookmark - Element to link current url of
  *   the page view.
  */
@@ -74,6 +76,7 @@ class Toolbar {
         eventName: "presentationmode",
       },
       { element: options.download, eventName: "download" },
+      { element: options.downloadOriginal, eventName: "downloadOriginal" },
       { element: options.viewBookmark, eventName: null },
     ];
     this.items = {

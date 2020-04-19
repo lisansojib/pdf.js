@@ -1498,7 +1498,7 @@ const PDFViewerApplication = {
 
     // Set ScaleSelect and adjust zoom
     this.pdfViewer.currentScaleValue = userParams.defaultScaleSelect;
-    
+
     // Update Open/Hide Sidebar according to user value
     if (userParams.showThumbnailList) {
       PDFViewerApplication.pdfSidebar.open();
@@ -1632,6 +1632,7 @@ const PDFViewerApplication = {
     eventBus._on("presentationmode", webViewerPresentationMode);
     eventBus._on("print", webViewerPrint);
     eventBus._on("download", webViewerDownload);
+    eventBus._on("downloadOriginal", webViewerDownloadOriginal);
     eventBus._on("firstpage", webViewerFirstPage);
     eventBus._on("lastpage", webViewerLastPage);
     eventBus._on("nextpage", webViewerNextPage);
@@ -1706,6 +1707,7 @@ const PDFViewerApplication = {
     eventBus._off("presentationmode", webViewerPresentationMode);
     eventBus._off("print", webViewerPrint);
     eventBus._off("download", webViewerDownload);
+    eventBus._on("downloadOriginal", webViewerDownloadOriginal);
     eventBus._off("firstpage", webViewerFirstPage);
     eventBus._off("lastpage", webViewerLastPage);
     eventBus._off("nextpage", webViewerNextPage);
@@ -2319,6 +2321,9 @@ function webViewerPrint() {
 }
 function webViewerDownload() {
   PDFViewerApplication.download();
+}
+function webViewerDownloadOriginal() {
+  alert("Downloaded");
 }
 function webViewerFirstPage() {
   if (PDFViewerApplication.pdfDocument) {

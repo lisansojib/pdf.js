@@ -77,6 +77,7 @@ function getViewerConfiguration() {
       print: document.getElementById("print"),
       presentationModeButton: document.getElementById("presentationMode"),
       download: document.getElementById("download"),
+      downloadOriginal: document.getElementById("downloadOriginal"),
       viewBookmark: document.getElementById("viewBookmark"),
     },
     secondaryToolbar: {
