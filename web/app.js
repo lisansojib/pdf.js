@@ -33,7 +33,6 @@ import {
   ProgressBar,
   RendererType,
   ScrollMode,
-  setDefaultScaleValue,
   SpreadMode,
   TextLayerMode,
 } from "./ui_utils.js";
@@ -84,6 +83,21 @@ const ViewOnLoad = {
   UNKNOWN: -1,
   PREVIOUS: 0, // Default value.
   INITIAL: 1,
+};
+
+const userParams = {
+  showPrintButton: true,
+  showFullScreenButton: true,
+  defaultScaleSelect: true,
+  showScaleSelect: true,
+  showOpenFileButton: true,
+  showDownloadButton: true,
+  showRotateButtons: true,
+  showZoomInZoomOutButtons: true,
+  showFindButton: true,
+  showThumbnailList: true,
+  showDocumentPropertiesButton: true,
+  showOutlineButton: true,
 };
 
 class DefaultExternalServices {
@@ -1482,10 +1496,14 @@ const PDFViewerApplication = {
     );
     this.secondaryToolbar.setPageNumber(this.pdfViewer.currentPageNumber);
 
-    if (!this.pdfViewer.currentScaleValue) {
-      // Scale was not initialized: invalid bookmark or scale was not specified.
-      // Setting the default one.
-      this.pdfViewer.currentScaleValue = DEFAULT_SCALE_VALUE;
+    // Set ScaleSelect and adjust zoom
+    this.pdfViewer.currentScaleValue = userParams.defaultScaleSelect;
+    
+    // Update Open/Hide Sidebar according to user value
+    if (userParams.showThumbnailList) {
+      PDFViewerApplication.pdfSidebar.open();
+    } else {
+      PDFViewerApplication.pdfSidebar.close();
     }
   },
 
@@ -1893,20 +1911,23 @@ function webViewerInitialized() {
       });
   }
 
-  const showPrintButton =
+  userParams.showPrintButton =
     "showprintbutton" in params
       ? convertToBoolean(params.showprintbutton)
       : PDFViewerApplication.supportsPrinting;
-  if (!PDFViewerApplication.supportsPrinting || !showPrintButton) {
+  if (!PDFViewerApplication.supportsPrinting || !userParams.showPrintButton) {
     appConfig.toolbar.print.classList.add("hidden");
     appConfig.secondaryToolbar.printButton.classList.add("hidden");
   }
 
-  const shwofullscreenbutton =
+  userParams.showFullScreenButton =
     "shwofullscreenbutton" in params
       ? convertToBoolean(params.shwofullscreenbutton)
       : PDFViewerApplication.supportsFullscreen;
-  if (!PDFViewerApplication.supportsFullscreen || !shwofullscreenbutton) {
+  if (
+    !PDFViewerApplication.supportsFullscreen ||
+    !userParams.showFullScreenButton
+  ) {
     appConfig.toolbar.presentationModeButton.classList.add("hidden");
     appConfig.secondaryToolbar.presentationModeButton.classList.add("hidden");
   }
@@ -1915,80 +1936,75 @@ function webViewerInitialized() {
     appConfig.toolbar.viewFind.classList.add("hidden");
   }
 
-  debugger;
-  const defaultScaleSelect =
+  userParams.defaultScaleSelect =
     "scaleselect" in params ? params.scaleselect : "auto";
-  setDefaultScaleValue(defaultScaleSelect);
 
-  const showScaleSelect =
+  userParams.showScaleSelect =
     "showscaleselect" in params
       ? convertToBoolean(params.showscaleselect)
       : true;
-  if (!showScaleSelect) {
+  if (!userParams.showScaleSelect) {
     appConfig.toolbar.scaleSelectContainer.classList.add("hidden");
   }
 
-  const showOpenButton =
+  userParams.showOpenFileButton =
     "showopenbutton" in params ? convertToBoolean(params.showopenbutton) : true;
-  if (!showOpenButton) {
+  if (!userParams.showOpenFileButton) {
     appConfig.toolbar.openFile.classList.add("hidden");
     appConfig.secondaryToolbar.openFileButton.classList.add("hidden");
   }
 
-  const showDownloadButton =
+  userParams.showDownloadButton =
     "showdownloadbutton" in params
       ? convertToBoolean(params.showdownloadbutton)
       : true;
-  if (!showDownloadButton) {
+  if (!userParams.showDownloadButton) {
     appConfig.toolbar.download.classList.add("hidden");
     appConfig.secondaryToolbar.downloadButton.classList.add("hidden");
   }
 
-  const showRotateButtons =
+  userParams.showRotateButtons =
     "showrotatebuttons" in params
       ? convertToBoolean(params.showrotatebuttons)
       : true;
-  if (!showRotateButtons) {
+  if (!userParams.showRotateButtons) {
     appConfig.secondaryToolbar.pageRotateCwButton.classList.add("hidden");
     appConfig.secondaryToolbar.pageRotateCcwButton.classList.add("hidden");
   }
 
-  const showZoomInOutButtons =
+  userParams.showZoomInZoomOutButtons =
     "showzoominzoomoutbuttons" in params
       ? convertToBoolean(params.showzoominoutbuttons)
       : true;
-  if (!showZoomInOutButtons) {
+  if (!userParams.showZoomInZoomOutButtons) {
     appConfig.toolbar.zoomIn.classList.add("hidden");
     appConfig.toolbar.zoomOut.classList.add("hidden");
   }
 
-  const showFindButton =
+  userParams.showFindButton =
     "showfindbutton" in params ? convertToBoolean(params.showfindbutton) : true;
-  if (!showFindButton) {
+  if (!userParams.showZoomInZoomOutButtons) {
     appConfig.toolbar.viewFind.classList.add("hidden");
   }
 
-  const showThumbnailList =
+  userParams.showThumbnailList =
     "showthumbnaillist" in params
       ? convertToBoolean(params.showthumbnaillist)
       : true;
-  if (!showThumbnailList) {
-    appConfig.sidebar.toggleButton.classList.add("hidden");
-  }
 
-  const showDocumentPropertiesButton =
+  userParams.showDocumentPropertiesButton =
     "showdocumentpropertiesbutton" in params
       ? convertToBoolean(params.showdocumentpropertiesbutton)
       : true;
-  if (!showDocumentPropertiesButton) {
+  if (!userParams.showDocumentPropertiesButton) {
     appConfig.secondaryToolbar.documentPropertiesButton.classList.add("hidden");
   }
 
-  const showOutlineButton =
+  userParams.showOutlineButton =
     "showoutlinebutton" in params
       ? convertToBoolean(params.showoutlinebutton)
       : true;
-  if (!showOutlineButton) {
+  if (!userParams.showOutlineButton) {
     appConfig.secondaryToolbar.outlineButton.classList.add("hidden");
   }
 
