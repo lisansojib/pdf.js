@@ -2311,9 +2311,6 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
       "hidden",
       "true"
     );
-
-    appConfig.toolbar.download.setAttribute("hidden", "true");
-    appConfig.secondaryToolbar.downloadButton.setAttribute("hidden", "true");
   };
 
   webViewerOpenFile = function(evt) {
