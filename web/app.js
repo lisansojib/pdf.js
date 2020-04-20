@@ -98,6 +98,7 @@ const userParams = {
   showThumbnailList: true,
   showDocumentPropertiesButton: true,
   showOutlineButton: true,
+  originalFileDownloadDirectory: "",
 };
 
 class DefaultExternalServices {
@@ -2272,10 +2273,17 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
     ) {
       return; // Opening a new PDF file isn't supported in Presentation Mode.
     }
+
+    // Problem occured with file upload
+    const isValid = validateUploadFile(evt.fileInput.files);
+    if (!isValid) {
+      return;
+    }
+
     const file = evt.fileInput.files[0];
 
     if (file && file.type.includes("image")) {
-      processImageFiles(file);
+      processImageFiles(evt.fileInput.files);
     } else if (
       URL.createObjectURL &&
       !AppOptions.get("disableCreateObjectURL")
@@ -2303,6 +2311,7 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
       "hidden",
       "true"
     );
+
     appConfig.toolbar.download.setAttribute("hidden", "true");
     appConfig.secondaryToolbar.downloadButton.setAttribute("hidden", "true");
   };
@@ -2323,8 +2332,18 @@ function webViewerDownload() {
   PDFViewerApplication.download();
 }
 function webViewerDownloadOriginal() {
-  alert("Downloaded");
+  if (!userParams.originalFileDownloadDirectory) {
+    return;
+  }
+
+  const url =
+    callerUrl +
+    "/imageviewer-api/file-processor/download?downloadPath=" +
+    userParams.originalFileDownloadDirectory;
+
+  window.open(url, "_blank");
 }
+
 function webViewerFirstPage() {
   if (PDFViewerApplication.pdfDocument) {
     PDFViewerApplication.page = 1;
@@ -2859,7 +2878,7 @@ function webViewerKeyDown(evt) {
  * Process if uploaded file is image
  * @param {Image} - Uploaded Image
  */
-function processImageFiles(file) {
+function processImageFiles(files) {
   const url = callerUrl + "/imageviewer-api/file-processor/process-image";
 
   const xhr = createCORSRequest("POST", url);
@@ -2874,14 +2893,45 @@ function processImageFiles(file) {
         url: xhr.response.url,
         originalUrl: xhr.response.fileName,
       };
+      userParams.originalFileDownloadDirectory = xhr.response.downloadDirectory;
       PDFViewerApplication.open(fileUrl);
+    } else if (
+      (xhr.readyState === 4 && xhr.status === 400) ||
+      (xhr.readyState === 4 && xhr.status === 500)
+    ) {
+      alert(xhr.status.Message);
     }
   };
 
   const formData = new FormData();
-  formData.append("UploadImage", file);
+  for (let i = 0; i < files.length; i++) {
+    formData.append("UploadImage-" + i, files[i]);
+  }
+
   // Initiate a multipart/form-data upload
   xhr.send(formData);
+}
+
+/**
+ * Multiple upload is allowed only for image files.
+ * In case of pdf file if user uploads multiple file,
+ * only the first pdf will be loaded on viewer.
+ */
+function validateUploadFile(files) {
+  if (files.length === 1) {
+    return true;
+  }
+
+  const hasPdf = files.some(function(el) {
+    return file.type.includes("pdf");
+  });
+
+  if (hasPdf) {
+    alert("Multiple upload is allowed for images only.");
+    return false;
+  }
+
+  return true;
 }
 
 /**
