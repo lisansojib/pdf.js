@@ -2280,6 +2280,9 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
       return;
     }
 
+    // Reset originalFileDownloadDirectory
+    userParams.originalFileDownloadDirectory = "";
+
     const file = evt.fileInput.files[0];
 
     if (file && file.type.includes("image")) {
@@ -2322,14 +2325,18 @@ if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
 function webViewerPresentationMode() {
   PDFViewerApplication.requestPresentationMode();
 }
+
 function webViewerPrint() {
   window.print();
 }
+
 function webViewerDownload() {
   PDFViewerApplication.download();
 }
+
 function webViewerDownloadOriginal() {
   if (!userParams.originalFileDownloadDirectory) {
+    alert("Original Image file doesn't exists.");
     return;
   }
 
@@ -2915,20 +2922,21 @@ function processImageFiles(files) {
  * only the first pdf will be loaded on viewer.
  */
 function validateUploadFile(files) {
+  let isValid = true;
+
   if (files.length === 1) {
-    return true;
+    return isValid;
   }
 
-  const hasPdf = files.some(function(el) {
-    return file.type.includes("pdf");
-  });
-
-  if (hasPdf) {
-    alert("Multiple upload is allowed for images only.");
-    return false;
+  for (let i = 0; i < files.length; i++) {
+    if (files[i].type.includes("pdf")) {
+      alert("Multiple upload is allowed for images only.");
+      isValid = false;
+      break;
+    }
   }
 
-  return true;
+  return isValid;
 }
 
 /**
