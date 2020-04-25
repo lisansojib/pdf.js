@@ -1977,7 +1977,7 @@ function webViewerInitialized() {
 
   userParams.showZoomInZoomOutButtons =
     "showzoominzoomoutbuttons" in params
-      ? convertToBoolean(params.showzoominoutbuttons)
+      ? convertToBoolean(params.showzoominzoomoutbuttons)
       : true;
   if (!userParams.showZoomInZoomOutButtons) {
     appConfig.toolbar.zoomIn.classList.add("hidden");
@@ -2008,7 +2008,7 @@ function webViewerInitialized() {
       ? convertToBoolean(params.showoutlinebutton)
       : true;
   if (!userParams.showOutlineButton) {
-    appConfig.secondaryToolbar.outlineButton.classList.add("hidden");
+    appConfig.sidebar.outlineButton.classList.add("hidden");
   }
 
   appConfig.mainContainer.addEventListener(
